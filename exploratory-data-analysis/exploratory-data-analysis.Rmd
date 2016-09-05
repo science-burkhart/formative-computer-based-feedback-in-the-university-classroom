@@ -1,0 +1,49 @@
+---
+title: "exploratory-data-analysis"
+author: "Christian Burkhart"
+output: html_document
+---
+
+# Exploratory Data Analysis
+
+```{r Load libraries, echo=FALSE, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(scales)
+```
+
+```{r Load data set}
+data <- read.csv("../data/data-lecture-study.csv", sep = ";")
+```
+
+`r nrow(data)` subjects were included in the data analysis. Their mean age was `r round(mean(data$age), 2)` (*SD* = `r round(sd(data$age), 2)`). `r percent(round(as.numeric(table(data$gender)[2]) / nrow(data), 2))` were female. 
+
+# Univariate Analysis
+
+```{r Grid of important subjects variables, echo=FALSE}
+histogram.age <- qplot(age, data = data, geom = "histogram", binwidth = 1)
+histogram.university.semester <- qplot(university.semester, data = data, 
+                                       geom = "histogram", binwidth = 2)
+histogram.subject.semester <- qplot(subject.semester, data = data, 
+                                    geom = "histogram", binwidth = 2)
+histogram.preknowledge.teaching <- qplot(preknowledge.teaching, data = data, 
+                                         geom = "histogram", binwidth = 1)
+histogram.teaching.experience <- qplot(teaching.experience, data = data, 
+                                       geom = "histogram", binwidth = 1)
+
+grid.arrange(histogram.age, histogram.university.semester,
+            histogram.subject.semester, histogram.preknowledge.teaching,
+            histogram.teaching.experience,
+            ncol = 2)
+```
+
+# Bivariate Analysis
+
+# Multivariate Analysis
+
+
+
+
+
+
