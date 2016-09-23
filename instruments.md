@@ -20,7 +20,7 @@ Before subjects wrote their first text we asked them to fill out a questionnaire
 > The understanding of a text can be improved by ...
 
 | item number | item |
-| -- | -- |
+| --- | --- |
 | coherence.00 | including connectives that relate sentences logically (and, because, when). | 
 | coherence.01 | using sentences with a similar sentence structure within a text. |
 | coherence.02 | including temporal connectives (then, after that). |
