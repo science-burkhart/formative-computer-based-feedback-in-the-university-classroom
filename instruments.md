@@ -1,6 +1,5 @@
 # Instruments
 
-
 ## Subjective Cognitive Load Items
 
 We adapted a a questionnaire developed by [Berthold and Renkl (2009)](http://psycnet.apa.org/journals/edu/101/1/70/) on subjective cognitive load. We used a 5-point Likert scale for each question.
@@ -47,9 +46,4 @@ Two independent raters calculated global coherence by the following rubric.
 | Subordinate concepts are not stated | Subordinate concepts are stated | | 
 
 Global cohesion was calculated by the sum all three points.
-
-## Feedback on tool
-
-After subjects wrote their first text on instructional explanations we handed them out a short quess
-
 
