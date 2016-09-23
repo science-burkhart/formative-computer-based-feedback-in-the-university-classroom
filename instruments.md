@@ -21,18 +21,18 @@ Before subjects wrote their first text we asked them to fill out a questionnaire
 
 | item number | item |
 | -- | -- |
-| coherence.00 | "including connectives that relate sentences logically (and, because, when)." | 
-| coherence.01 | "using sentences with a similar sentence structure within a text." |
-| coherence.02 | "including temporal connectives (then, after that)." |
-| coherence.03 | "structuring a text with headings." |
-| coherence.04 | "repetition of nouns that were previously introduced." |
-| coherence.05 | "sticking to the temporal sequence of a topic." |
-| coherence.06 | "including paragraphs." |
-| coherence.07 | "using a variety of creative topic sentences." |
-| coherence.08 | "using many synonyms." |
-| coherence.09 | "explicit reference of related text sections." |
-| coherence.10 | "including word repetitions." |
-| coherence.11 | "sticking to the logical structure of a topic. |
+| coherence.00 | including connectives that relate sentences logically (and, because, when). | 
+| coherence.01 | using sentences with a similar sentence structure within a text. |
+| coherence.02 | including temporal connectives (then, after that). |
+| coherence.03 | structuring a text with headings. |
+| coherence.04 | repetition of nouns that were previously introduced. |
+| coherence.05 | sticking to the temporal sequence of a topic. |
+| coherence.06 | including paragraphs. |
+| coherence.07 | using a variety of creative topic sentences. |
+| coherence.08 | using many synonyms. |
+| coherence.09 | explicit reference of related text sections. |
+| coherence.10 | including word repetitions. |
+| coherence.11 | sticking to the logical structure of a topic. |
 
 ## Global coherence rubric
 
