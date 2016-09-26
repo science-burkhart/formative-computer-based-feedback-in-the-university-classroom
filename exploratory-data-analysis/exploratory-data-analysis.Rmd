@@ -8,10 +8,20 @@ output: html_document
 
 ```{r Load libraries, echo=FALSE, warning=FALSE, message=FALSE}
 library(ggplot2)
+library(reshape2)
 library(dplyr)
 library(gridExtra)
 library(scales)
+library(psych)
+# library(nFactors)
+# library(FactoMineR)
 ```
+
+```{r Colors, echo=FALSE}
+color.one <- "#21313E"
+color.two <- "#4CA173"
+```
+
 
 ```{r Load data set}
 data <- read.csv("../data/data-lecture-study.csv", sep = ";")
@@ -19,7 +29,7 @@ data <- read.csv("../data/data-lecture-study.csv", sep = ";")
 
 `r nrow(data)` subjects were included in the data analysis. Their mean age was `r round(mean(data$age), 2)` (*SD* = `r round(sd(data$age), 2)`). `r percent(round(as.numeric(table(data$gender)[2]) / nrow(data), 2))` were female. 
 
-# Univariate Analysis
+## Univariate Analysis
 
 ```{r Grid of important subjects variables, echo=FALSE}
 histogram.age <- qplot(age, data = data, geom = "histogram", binwidth = 1)
@@ -31,19 +41,77 @@ histogram.preknowledge.teaching <- qplot(preknowledge.teaching, data = data,
                                          geom = "histogram", binwidth = 1)
 histogram.teaching.experience <- qplot(teaching.experience, data = data, 
                                        geom = "histogram", binwidth = 1)
+histogram.scientific.writing <- qplot(scientific.writing, data = data, 
+                                       geom = "histogram", binwidth = 1)
+histogram.internship <- qplot(internship, data = data, 
+                                       geom = "histogram", binwidth = 1)
 
 grid.arrange(histogram.age, histogram.university.semester,
             histogram.subject.semester, histogram.preknowledge.teaching,
-            histogram.teaching.experience,
-            ncol = 2)
+            histogram.teaching.experience, histogram.scientific.writing,
+            histogram.internship, ncol = 2)
 ```
 
-# Bivariate Analysis
+Most students are in their 20s with very few above or below. Some students used negative values in the variable university semester. We need to turn them to absolute values:
 
-# Multivariate Analysis
+```{r Turn university.semester to absolute values}
+data$university.semester <- abs(data$university.semester)
+```
+
+The students do not have a lot of teaching experience either in general knowledge about teaching or real teaching experience. Most students have never attended a course on scientific writing. As students are early in their studies most of them have not finished their internship as part of their teacher education program.
+
+### Factor analysis coherence questionnaire
+
+Our subjects filled out a self-made questionnaire on text coherence. We assumed two factors: local and global coherence. In order to test this hypothesis, we need to calculate a exploratory factor analysis:
+
+```{r Factor analysis coherence questionnaire, echo=FALSE}
+# Select all variables of text coherence questionnaire
+coherence.data <- select(data, c(13, 14, 15, 16, 17, 18, 20, 22, 23, 24, 25))
+
+# fit <- factanal(coherence.data, 2, rotation = "varimax")
+# print(fit, digits = 2, cutoff = .3, sort = TRUE)
+# load <- fit$loadings[, 1:2]
+# plot(load, type = "n")
+# text(load, labels = names(coherence.data), cex = .7)
+
+# ev <- eigen(cor(coherence.data)) # get eigenvalues
+# ap <- parallel(subject=nrow(coherence.data),var=ncol(coherence.data),
+#   rep=100,cent=.05)
+# nS <- nScree(x=ev$values, aparallel=ap$eigen$qevpea)
+# plotnScree(nS)
+# 
+# result <- PCA(coherence.data)
+```
 
 
+### Univariate Data of texts
 
+Let's see how the number of sentences differed for each text and variable.
+
+```{r Histogram text data, echo=FALSE, warning=FALSE}
+# Save variable names in vector
+sentences.variables <- 
+  c("explanation.pre.num.sentences", "explanation.post.num.sentences",
+    "diagnostic.pre.num.sentences", "diagnostic.post.num.sentences",
+    "schoolsystems.num.sentences")
+
+# Find columns that match variable names
+colNums <- match(sentences.variables, names(data))
+
+# Select columns from data frame and bring data to long format
+sentences <- melt(dplyr::select(data, colNums))
+
+# Draw density histogram of sentence variables
+ggplot(sentences, aes(x = value, fill = variable)) +
+  geom_density(alpha = .2)
+```
+
+Most students wrote about 10 to 15 sentences for each text. The least sentences were written in the last text on schoolsystems. Overall, there is not much difference except for the last text. 
+
+
+## Bivariate Analysis
+
+## Multivariate Analysis
 
 
 
