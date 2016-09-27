@@ -6,6 +6,11 @@ output: html_document
 
 # Exploratory Data Analysis
 
+```{r, echo=FALSE}
+options(warn=-1)
+```
+
+
 ```{r Load libraries, echo=FALSE, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(reshape2)
@@ -20,6 +25,30 @@ library(psych)
 ```{r Colors, echo=FALSE}
 color.one <- "#21313E"
 color.two <- "#4CA173"
+```
+
+```{r Helper functions, echo=FALSE}
+density.plot <- function(measures) {
+  # Get columns of text measure variables
+  col.nums <- match(measures, names(data))
+  
+  # Melt data frame to long format
+  text.measures.long <- melt(dplyr::select(data, col.nums))
+  
+  # Assign new variable to data frame
+  # Regex check if variable is pre or post
+  text.measures.long$time <- as.factor(ifelse(grepl("pre", 
+                                          text.measures.long$variable, 
+                                          ignore.case = TRUE), "pre", "post"))
+  text.measures.long$text <- as.factor(ifelse(grepl("diagnostic", 
+                                          text.measures.long$variable, 
+                                          ignore.case = TRUE), "diagnostic", "explanation"))
+  
+  # Plot coherence sentences
+  ggplot(text.measures.long, aes(x = value, fill = time)) +
+    geom_density(alpha = .4) +
+    facet_grid( ~ text)
+}
 ```
 
 
@@ -88,7 +117,7 @@ coherence.data <- select(data, c(13, 14, 15, 16, 17, 18, 20, 22, 23, 24, 25))
 
 Let's see how the number of sentences differed for each text and variable.
 
-```{r Histogram text data, echo=FALSE, warning=FALSE}
+```{r Histogram text data, echo=FALSE, message=FALSE}
 # Save variable names in vector
 sentences.variables <- 
   c("explanation.pre.num.sentences", "explanation.post.num.sentences",
@@ -96,10 +125,10 @@ sentences.variables <-
     "schoolsystems.num.sentences")
 
 # Find columns that match variable names
-colNums <- match(sentences.variables, names(data))
+col.nums <- match(sentences.variables, names(data))
 
 # Select columns from data frame and bring data to long format
-sentences <- melt(dplyr::select(data, colNums))
+sentences <- melt(dplyr::select(data, col.nums))
 
 # Draw density histogram of sentence variables
 ggplot(sentences, aes(x = value, fill = variable)) +
@@ -107,6 +136,88 @@ ggplot(sentences, aes(x = value, fill = variable)) +
 ```
 
 Most students wrote about 10 to 15 sentences for each text. The least sentences were written in the last text on schoolsystems. Overall, there is not much difference except for the last text. 
+
+Let's see how subjects different in the other text measures.
+
+```{r Text measures, echo=FALSE}
+# Save variable names in vectors
+coherence.measures <- c("explanation.pre.coh.sen", "explanation.post.coh.sen",
+                   "diagnostic.pre.coh.sen", "diagnostic.post.coh.sen")
+non.coherence.measures <- c("explanation.pre.not.coh.sen", 
+                            "explanation.post.not.coh.sen",
+                            "diagnostic.pre.not.coh.sen",
+                            "diagnostic.post.not.coh.sen")
+cluster.measures <- c("explanation.pre.num.clusters",
+                      "explanation.post.num.clusters",
+                      "diagnostic.pre.num.clusters",
+                      "diagnostic.post.num.clusters")
+```
+
+```{r Coherent sentences distribution, echo=FALSE, message=FALSE}
+density.plot(coherence.measures)
+```
+
+All in all students seem to have written a slight amount of more coherent sentences in the first text on exlanation. The difference between their draft (pre) and their revision (post) is minor. There is a small trend towards more coherent sentences in the revision.
+
+```{r Non-coherent sentences distribution, echo=FALSE, message=FALSE}
+density.plot(non.coherence.measures)
+```
+
+Both distributions seem to be quite identical indicating that students non-coherent sentences didn't change with their revisions.
+
+```{r Cluster measures, echo=FALSE, message=FALSE}
+density.plot(cluster.measures)
+```
+
+Subjects had less clusters in their revision compared to their draft in both texts. 
+
+```{r Duplicates, echo=FALSE}
+explanation.duplicate.prop <- prop.table(table(data$explanation.duplicate))
+diagnostic.duplicate.prop <- prop.table(table(data$diagnostic.duplicate))
+```
+
+`r percent(round(explanation.duplicate.prop[2], 4))` of subjects did not revise their texts at all in the first text on instructional explanations. `r percent(round(diagnostic.duplicate.prop[2], 4))` did not revise their text in the second text on teacher diagnostic. One reason is that students that wrote text with only a single calculated cluster received a feedback indicating that their texts are coherent. Subjects might be prompted to think that a revision of their drafts was not necessary under these circumstances. 
+
+```{r Density plot global coherence}
+global.coherence.variables <- c("explanation.global.coherence.pre",
+                                            "explanation.global.coherence.post",
+                                            "diagnostic.global.coherence.post",
+                                            "diagnostic.global.coherence.pre")
+density.plot(global.coherence.variables)
+```
+
+It seems as if global coherence improved a bit with the text's revision. 
+
+```{r}
+# Melt data frame to long format
+col.nums <- match(global.coherence.variables, names(data))
+global.coherence <- melt(dplyr::select(data, col.nums))
+
+# Assign new variable to data frame
+# Regex check if variable is pre or post
+global.coherence$time <- as.factor(ifelse(grepl("pre", 
+                                        global.coherence$variable, 
+                                        ignore.case = TRUE), "pre", "post"))
+global.coherence$text <- as.factor(ifelse(grepl("diagnostic", 
+                                        global.coherence$variable, 
+                                        ignore.case = TRUE), "diagnostic", "explanation"))
+
+# Select variables
+global.coherence <- select(global.coherence, value, time, text)
+  
+```
+
+
+```{r Density plot local coherence}
+local.cohesion.variables <- c("explanation.local.cohesion.pre",
+                                            "explanation.local.cohesion.post",
+                                            "diagnostic.local.cohesion.post",
+                                            "diagnostic.local.cohesion.pre")
+density.plot(local.cohesion.variables)
+```
+
+We calculated cohesion by the ratio between the number of clusters and the number of sentences for each text. The lower our measure of local coherence, the more locally cohesive the text. It seems as if local cohesion markedly improved in both texts. 
+
 
 
 ## Bivariate Analysis
