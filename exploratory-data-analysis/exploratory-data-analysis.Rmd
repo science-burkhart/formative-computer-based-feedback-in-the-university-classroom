@@ -28,7 +28,7 @@ color.two <- "#4CA173"
 ```
 
 ```{r Helper functions, echo=FALSE}
-density.plot <- function(measures) {
+density.plot <- function(measures, data) {
   # Get columns of text measure variables
   col.nums <- match(measures, names(data))
   
@@ -48,6 +48,11 @@ density.plot <- function(measures) {
   ggplot(text.measures.long, aes(x = value, fill = time)) +
     geom_density(alpha = .4) +
     facet_grid( ~ text)
+}
+
+# Converts the string representation of a date to a posix format
+date.to.posix <- function(column) {
+  as.POSIXct(column, "GMT", format = "%d.%m.%Y %H:%M")
 }
 ```
 
@@ -154,19 +159,19 @@ cluster.measures <- c("explanation.pre.num.clusters",
 ```
 
 ```{r Coherent sentences distribution, echo=FALSE, message=FALSE}
-density.plot(coherence.measures)
+density.plot(coherence.measures, data)
 ```
 
 All in all students seem to have written a slight amount of more coherent sentences in the first text on exlanation. The difference between their draft (pre) and their revision (post) is minor. There is a small trend towards more coherent sentences in the revision.
 
 ```{r Non-coherent sentences distribution, echo=FALSE, message=FALSE}
-density.plot(non.coherence.measures)
+density.plot(non.coherence.measures, data)
 ```
 
 Both distributions seem to be quite identical indicating that students non-coherent sentences didn't change with their revisions.
 
 ```{r Cluster measures, echo=FALSE, message=FALSE}
-density.plot(cluster.measures)
+density.plot(cluster.measures, data)
 ```
 
 Subjects had less clusters in their revision compared to their draft in both texts. 
@@ -178,17 +183,27 @@ diagnostic.duplicate.prop <- prop.table(table(data$diagnostic.duplicate))
 
 `r percent(round(explanation.duplicate.prop[2], 4))` of subjects did not revise their texts at all in the first text on instructional explanations. `r percent(round(diagnostic.duplicate.prop[2], 4))` did not revise their text in the second text on teacher diagnostic. One reason is that students that wrote text with only a single calculated cluster received a feedback indicating that their texts are coherent. Subjects might be prompted to think that a revision of their drafts was not necessary under these circumstances. 
 
-```{r Density plot global coherence}
+```{r Density plot global coherence, echo=FALSE}
 global.coherence.variables <- c("explanation.global.coherence.pre",
                                             "explanation.global.coherence.post",
                                             "diagnostic.global.coherence.post",
                                             "diagnostic.global.coherence.pre")
-density.plot(global.coherence.variables)
+density.plot(global.coherence.variables, data)
 ```
 
 It seems as if global coherence improved a bit with the text's revision. 
 
-```{r}
+Let's see how it looks when we only look at subjects who made changes to both texts.
+
+```{r Global coherence engaged subjects, echo=FALSE}
+engaged.subjects <- filter(data, explanation.duplicate == 0,
+                           diagnostic.duplicate == 0)
+density.plot(global.coherence.variables, engaged.subjects)
+```
+
+There is not really a difference between these groups. Global coherence improved a tiny bit, about the same amount if we were to take all subjects.
+
+```{r, echo=FALSE}
 # Melt data frame to long format
 col.nums <- match(global.coherence.variables, names(data))
 global.coherence <- melt(dplyr::select(data, col.nums))
@@ -204,20 +219,96 @@ global.coherence$text <- as.factor(ifelse(grepl("diagnostic",
 
 # Select variables
 global.coherence <- select(global.coherence, value, time, text)
-  
 ```
 
 
-```{r Density plot local coherence}
+```{r Density plot local coherence, echo=FALSE}
 local.cohesion.variables <- c("explanation.local.cohesion.pre",
                                             "explanation.local.cohesion.post",
                                             "diagnostic.local.cohesion.post",
                                             "diagnostic.local.cohesion.pre")
-density.plot(local.cohesion.variables)
+density.plot(local.cohesion.variables, data)
 ```
 
 We calculated cohesion by the ratio between the number of clusters and the number of sentences for each text. The lower our measure of local coherence, the more locally cohesive the text. It seems as if local cohesion markedly improved in both texts. 
 
+Let's see how the graph looks with the engaged subjects included.
+
+```{r Local cohesion engaged students, echo=FALSE}
+density.plot(local.cohesion.variables, engaged.subjects)
+```
+
+Again, there is no change in the distribution between engaged subjects and non-engaged subjects.
+
+```{r Interaction local cohesion, echo=FALSE}
+# Get columns that deal with local cohesion
+col.nums <- match(local.cohesion.variables, names(data))
+
+# Create new data frame and melt it with local cohesion
+# variables
+local.cohesion <- melt(select(data, col.nums))
+
+# Calcluate confidence intervals for local.cohesion variables
+conf.local.cohesion <- group_by(local.cohesion, variable) %>%
+  summarise(mean = mean(value),
+            se = sd(value, na.rm = TRUE) / sqrt(n()),
+            lower.limit = mean - (1.96 * se),
+            upper.limit = mean + (1.96 * se))
+
+# Calculate new variables from existing with regex
+conf.local.cohesion$time <- as.factor(ifelse(grepl("pre", 
+                                        conf.local.cohesion$variable, 
+                                        ignore.case = TRUE), "pre", "post"))
+
+conf.local.cohesion$text <- as.factor(ifelse(grepl("diagnostic", 
+                                        conf.local.cohesion$variable, 
+                                        ignore.case = TRUE), "diagnostic",
+                                        "explanation"))
+
+# Remove variable column from data frame
+conf.local.cohesion <- select(conf.local.cohesion, mean, se, lower.limit,
+                              upper.limit, time, text)
+
+# Plot interaction
+ggplot(conf.local.cohesion, aes(x = text, y = mean, group = time)) +
+  geom_point(size = 4) +
+  geom_line(size = 1) +
+  geom_errorbar(aes(ymin = lower.limit, ymax = upper.limit),
+                width = .1)
+```
+
+Overall it seems like local cohesion improved significantly in both texts from draft to revision. 
+
+Our last variable deals with the submissions of the texts. Let us see how they differ.
+
+```{r Submissions, echo=FALSE}
+# Submission variables
+submission.variables <- c("submission.erklaerung.post", 
+                          "submission.erklaerung.pre",
+                          "submission.diagnostik.pre",
+                          "submission.diagnostik.post",
+                          "submission.schoolsystems")
+
+# Get columns of submissions
+submission.cols <- match(submission.variables, names(data))
+
+# Get data frame from columns
+submission.dframe <- select(data, submission.cols)
+
+# Convert dates to character
+submission.dframe <- data.frame(apply(submission.dframe, 2, as.character),
+                                   stringsAsFactors = FALSE)
+```
+
+```{r}
+submission.melt <- melt(lapply(submission.dframe, date.to.posix))
+
+ggplot(submission.melt, aes(x = value, fill = variable)) +
+  geom_density(alpha = .3)
+
+
+
+```
 
 
 ## Bivariate Analysis
