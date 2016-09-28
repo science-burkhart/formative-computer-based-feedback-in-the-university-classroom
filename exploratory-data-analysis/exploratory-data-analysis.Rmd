@@ -18,6 +18,7 @@ library(dplyr)
 library(gridExtra)
 library(scales)
 library(psych)
+library(tidyr)
 # library(nFactors)
 # library(FactoMineR)
 ```
@@ -298,13 +299,27 @@ submission.dframe <- select(data, submission.cols)
 # Convert dates to character
 submission.dframe <- data.frame(apply(submission.dframe, 2, as.character),
                                    stringsAsFactors = FALSE)
-```
 
-```{r}
+# Melt converted data
 submission.melt <- melt(lapply(submission.dframe, date.to.posix))
 
-ggplot(submission.melt, aes(x = value, fill = variable)) +
-  geom_density(alpha = .3)
+# Divide date column
+submission.melt.tidier <- separate(submission.melt, value,
+                                   into = c("date", "time"), sep = " ")
+
+# Convert to date
+submission.melt.tidier$date <- as.Date(submission.melt.tidier$date, format = "%Y-%m-%d")
+
+# Plot submissions
+ggplot(submission.melt, aes(x = date, y = time)) +
+  geom_point() +
+  scale_y_datetime(breaks=date_breaks("4 hour"), labels=date_format("%H:%M"))
+
+#http://stackoverflow.com/questions/7160565/how-to-create-a-time-scatterplot-with-r
+```
+
+```{r }
+
 
 
 
